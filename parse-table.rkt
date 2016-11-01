@@ -19,3 +19,5 @@
   (append (list (car x)) (map all (cdr x))))
 
 (define (all x) (cons '(1) (list x)))
+
+(define (nonterms gram) (append (map car gram)))
