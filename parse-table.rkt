@@ -21,3 +21,8 @@
 (define (all x) (cons '(1) (list x)))
 
 (define (nonterms gram) (append (map car gram)))
+
+(define (contains list x)
+    (cond ((null? list) #f)
+        ((eq? (car list) x) #t)
+        (else (contains (cdr list) x))))
