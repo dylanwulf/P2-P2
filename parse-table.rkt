@@ -74,18 +74,25 @@
   )
 )
 
+; loops through every line of grammar
 (define (firsts gram)
   (map firsts-helper gram))
 
+; loops through every production on the right hand side of the line, pairing the list of firsts to the
+; nonterminal that starts the line
 (define (firsts-helper line)
   (cons (car line)
         (append (map firsts-helper2 (cdr line)))))
 
+; If production starts with a terminal or the empty set, returns that item.
+; If production starts with a nonterminal, it runs the function again on that nonterminal's productions
 (define (firsts-helper2 production)
-  (cond ((= (length production) 0) '())
-        (contains (nonterms calc-gram) (car production))
-                (append (map firsts-helper2 (cdr (get-line (car production) calc-gram))))
-        (contains (get-terminals calc-gram) (car production)) (car production)))
+  (cond
+    ((= (length production) 0))
+    ((contains (get-terminals calc-gram) (car production))                                                  
+      (car production))      
+    (else
+      (append (map firsts-helper2 (cdr (get-line (car production) calc-gram)))))))
 
 ; finds the line that starts with the specified nonterminal
 (define (get-line nonterm gram)
