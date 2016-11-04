@@ -92,7 +92,7 @@
     ((contains (get-terminals calc-gram) (car production))                                                  
       (car production))      
     (else
-      (append (map firsts-helper2 (cdr (get-line (car production) calc-gram)))))))
+      (map firsts-helper2 (cdr (get-line (car production) calc-gram))))))
 
 ; finds the line that starts with the specified nonterminal
 (define (get-line nonterm gram)
