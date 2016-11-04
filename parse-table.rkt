@@ -73,3 +73,22 @@
     )
   )
 )
+
+(define (firsts gram)
+  (map firsts-helper gram))
+
+(define (firsts-helper line)
+  (cons (car line)
+        (append (map firsts-helper2 (cdr line)))))
+
+(define (firsts-helper2 production)
+  (cond ((= (length production) 0) '())
+        (contains (nonterms calc-gram) (car production))
+                (append (map firsts-helper2 (cdr (get-line (car production) calc-gram))))
+        (contains (get-terminals calc-gram) (car production)) (car production)))
+
+; finds the line that starts with the specified nonterminal
+(define (get-line nonterm gram)
+  (if (equal? (car (car gram)) nonterm)
+      (car gram)
+      (get-line nonterm (cdr gram))))
