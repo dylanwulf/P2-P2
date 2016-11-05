@@ -100,14 +100,16 @@
       (car gram)
       (get-line nonterm (cdr gram))))
 
-(define (empty-sets gram)
-  (map remove-repeats (eps gram)))
+; returns a list of pairs: first element in pair is nonterminal, second element is boolean value specifying
+; whether that nonterminal has the empty set in its first set.
+(define (eps gram)
+  (map remove-repeats (empties gram)))
 
 (define (remove-repeats line)
   (cond ((contains line #t) (cons (car line) #t))
         (else (cons (car line) #f))))
 
-(define (eps gram)
+(define (empties gram)
   (map eps-helper gram))
 
 (define (eps-helper line)
@@ -118,6 +120,7 @@
   (cond ((= (length production) 0) #t)
         ((> (length production) 0) #f)))
 
+; removes excess parentheses
 (define flatten
   (lambda (L)
     ; Return left-to-right fringe of tree as list.
