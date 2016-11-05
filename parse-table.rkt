@@ -81,16 +81,16 @@
 ; loops through every production on the right hand side of the line, pairing the list of firsts to the
 ; nonterminal that starts the line
 (define (firsts-helper line)
-  (cons (car line)
-        (append (map firsts-helper2 (cdr line)))))
+  (flatten(cons (car line)
+        (map firsts-helper2 (cdr line)))))
 
 ; If production starts with a terminal or the empty set, returns that item.
 ; If production starts with a nonterminal, it runs the function again on that nonterminal's productions
 (define (firsts-helper2 production)
   (cond
-    ((= (length production) 0))
+    ((= (length production) 0) '())
     ((contains (get-terminals calc-gram) (car production))                                                  
-      (car production))      
+      (car production))
     (else
       (map firsts-helper2 (cdr (get-line (car production) calc-gram))))))
 
@@ -99,3 +99,29 @@
   (if (equal? (car (car gram)) nonterm)
       (car gram)
       (get-line nonterm (cdr gram))))
+
+(define (empty-sets gram)
+  (map remove-repeats (eps gram)))
+
+(define (remove-repeats line)
+  (cond ((contains line #t) (cons (car line) #t))
+        (else (cons (car line) #f))))
+
+(define (eps gram)
+  (map eps-helper gram))
+
+(define (eps-helper line)
+  (cons (car line)
+        (map has-empty? (cdr line))))
+
+(define (has-empty? production)
+  (cond ((= (length production) 0) #t)
+        ((> (length production) 0) #f)))
+
+(define flatten
+  (lambda (L)
+    ; Return left-to-right fringe of tree as list.
+    (cond
+      ((null? L) L)
+      ((list? (car L)) (append (flatten (car L)) (flatten (cdr L))))
+      (else (cons (car L) (flatten (cdr L)))))))
