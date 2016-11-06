@@ -11,10 +11,12 @@
 ("F" ("id") ("num") ("(" "E" ")"))
 ))
 
+;Get the parse table for a specified grammar
 (define (parse-table gram)
   (parse-table-helper gram (firsts gram) (follow gram (eps gram) (nonterms gram) (get-terminals gram) (firsts gram)) (eps gram) (get-terminals gram))
 )
 
+;Helper function to make (parse-table) easier to read and use
 (define (parse-table-helper gram firsts follows eps terms)
   (if (eq? (length gram) 0)
       '()
@@ -22,33 +24,39 @@
   )
 )
 
-(define (parse-table-line symbol prods firsts follows eps terms)
+;Get the predict set for a specified list of productions which all have the left-hand side 'lhs'
+(define (parse-table-line lhs prods firsts follows eps terms)
   (if (eq? (length prods) 0)
       '()
-      (append (list (parse-table-prod symbol (car prods) firsts follows eps terms)) (parse-table-line symbol (cdr prods) firsts follows eps terms))
+      (append (list (parse-table-prod lhs (car prods) firsts follows eps terms)) (parse-table-line lhs (cdr prods) firsts follows eps terms))
   )
 )
 
-(define (parse-table-prod symbol prod firsts follows eps terms)
+;Get the predict set for a single specified production. Used by (parse-table-line)
+(define (parse-table-prod lhs prod firsts follows eps terms)
   (if (string-eps prod eps terms)
-      (cons (addifne (string-first prod firsts eps terms) (cdr (get-line symbol follows))) (list prod))
+      (cons (addifne (string-first prod firsts eps terms) (cdr (get-line lhs follows))) (list prod))
       (cons (string-first prod firsts eps terms) (list prod))
   )
 )
 
+;Get a list of nonterminal symbols for a specified grammar
 (define (nonterms gram) (map car gram))
 
+;True if the specified list contains the element x, or false otherwise
 (define (contains list x)
     (cond ((null? list) #f)
         ((eq? (car list) x) #t)
         (else (contains (cdr list) x))))
 
+;Get a list of terminal symbols for a specified grammar
 (define get-terminals
   (lambda (gram)
     (get-terminals-helper gram (nonterms gram))
   )
 )
 
+;This function is just here to make get-terminals easier to read and use
 (define get-terminals-helper
   (lambda (gram nonterms)
     (if (> (length gram) 0)
@@ -58,6 +66,7 @@
   )
 )
 
+;Get a list of terminals for a list of right-hand sides
 (define get-terms-rhs-list
   (lambda (rhs-list nonterms)
     (if (> (length rhs-list) 0)
@@ -67,6 +76,7 @@
   )
 )
 
+;Get the list of terminals in a specified right-hand side
 (define get-terms-rhs
   (lambda (rhs nonterms)
     (if (> (length rhs) 0)
@@ -79,6 +89,7 @@
   )
 )
 
+;Appends x to l without adding duplicate entries
 (define addifne
   (lambda (l x)
     (if (> (length x) 1)
@@ -274,5 +285,3 @@
     )
   )
 )
-
-(parse-table calc-gram)
