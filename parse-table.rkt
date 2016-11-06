@@ -128,3 +128,18 @@
       ((null? L) L)
       ((list? (car L)) (append (flatten (car L)) (flatten (cdr L))))
       (else (cons (car L) (flatten (cdr L)))))))
+
+(define string-first
+  (lambda (symbols firsts eps terminals)
+    (if (eq? (length symbols) 0)
+        '()
+        (if (contains terminals (car symbols))
+            (list (car symbols))
+            (if (cadr (get-line (car symbols) eps))
+                (addifne (cdr (get-line (car symbols) firsts)) (string-first (cdr symbols) firsts eps terminals))
+                (cdr (get-line (car symbols) firsts))
+            )
+        )
+    )
+  )
+)
