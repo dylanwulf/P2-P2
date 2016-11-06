@@ -11,6 +11,32 @@
 ("F" ("id") ("num") ("(" "E" ")"))
 ))
 
+(define temp-firsts ;; delete later!
+  '(("P" "id" "read" "write" "$$")
+ ("SL" "id" "read" "write")
+ ("S" "id" "read" "write")
+ ("E" "id" "num" "(")
+ ("T" "id" "num" "(")
+ ("TT" "+" "-")
+ ("FT" "*" "/")
+ ("ao" "+" "-")
+ ("mo" "*" "/")
+ ("F" "id" "num" "("))
+)
+
+(define temp-eps ;; delete later!
+  '(("P" #f)
+ ("SL" #t)
+ ("S" #f)
+ ("E" #f)
+ ("T" #f)
+ ("TT" #t)
+ ("FT" #t)
+ ("ao" #f)
+ ("mo" #f)
+ ("F" #f))
+)
+
 (define (parse-table calc-gram)
   (map parse-helper calc-gram))
 
@@ -129,6 +155,7 @@
       ((list? (car L)) (append (flatten (car L)) (flatten (cdr L))))
       (else (cons (car L) (flatten (cdr L)))))))
 
+;Combines the first sets of all symbols in the list 'symbols'. No duplicates are added.
 (define string-first
   (lambda (symbols firsts eps terminals)
     (if (eq? (length symbols) 0)
@@ -144,6 +171,8 @@
   )
 )
 
+;Checks if all the symbols provided can lead to epsilon.
+;true if they all can, false if one or more cannot.
 (define string-eps
   (lambda (symbols eps terminals)
     (if (eq? (length symbols) 0)
@@ -159,6 +188,7 @@
   )
 )
 
+;Adds 'addition' to a list in 'll' that starts with 'first'
 (define add-to
   (lambda (ll first addition)
     (if (eq? (length ll) 0)
@@ -170,3 +200,91 @@
     )
   )
 )
+
+;Generates a blank follow set from the list of nonterminals.
+(define blank-follow
+  (lambda (nonterminals)
+    (if (eq? (length nonterminals) 0)
+        '()
+        (append (list (list (car nonterminals))) (blank-follow (cdr nonterminals)))
+    )
+  )
+)
+
+;Calls check-follow-eq with a blank follow set. Nothing special.
+(define follow
+  (lambda (gram eps nonterms terms firsts)
+    (check-follow-eq gram eps nonterms terms firsts (blank-follow nonterms))
+  )
+)
+
+;This function simply makes check-follow-eq2 easier to read
+(define check-follow-eq
+  (lambda (gram eps nonterms terms firsts follows)
+    (check-follow-eq2 gram eps nonterms terms firsts (follow-lines gram eps nonterms terms firsts follows))
+  )
+)
+
+;Checks if follow set from current iteration is equivalent to follow set from last iteration.
+;If they are equivalent, that means no change was made the entire last iteration,
+;which means we are done and there is nothing more to add to the follow set.
+;If they are NOT equivalent, that means we are not done and need to call
+;follow-lines a few more times.
+(define check-follow-eq2
+  (lambda (gram eps nonterms terms firsts follows)
+    (if (equal? follows (follow-lines gram eps nonterms terms firsts follows))
+        follows
+        (check-follow-eq gram eps nonterms terms firsts follows)
+    )
+  )
+)
+
+;Calls follow-line for each line in the grammar
+(define follow-lines
+  (lambda (gram eps nonterms terms firsts follows)
+    (if (eq? (length gram) 0)
+        follows
+        (follow-lines (cdr gram) eps nonterms terms firsts (follow-line eps nonterms terms firsts follows (caar gram) (cdar gram)))
+    )
+  )
+)
+
+;Calls follow-production for each production in the current line
+(define follow-line
+  (lambda (eps nonterms terms firsts follows lhs prods)
+    (if (eq? (length prods) 0)
+        follows
+        (follow-line eps nonterms terms firsts (follow-production eps nonterms terms firsts follows lhs (car prods)) lhs (cdr prods))
+    )
+  )
+)
+
+;Calculates which terminals to add to which follow sets for the current production
+(define follow-production
+  (lambda (eps nonterms terms firsts follows lhs rhs)
+    ;If not the last symbol in the production, AND nonterminal
+    (if (and (> (length rhs) 1) (contains nonterms (car rhs)))
+        ;Then: If the rest of the symbols can all lead to epsilon
+        (if (string-eps (cdr rhs) eps terms)
+            ;Then: Add string_first AND follow of lhs to follow of (car rhs)
+            (follow-production eps nonterms terms firsts (add-to (add-to follows (car rhs) (cdr (get-line lhs follows))) (car rhs) (string-first (cdr rhs) firsts eps terms)) lhs (cdr rhs))
+            ;Else: Add only string_first to follow of (car rhs)
+            (follow-production eps nonterms terms firsts (add-to follows (car rhs) (string-first (cdr rhs) firsts eps terms)) lhs (cdr rhs))
+        )
+      ;Else: If nonterminal AND last symbol in production
+      (if (and (eq? (length rhs) 1) (contains nonterms (car rhs)))
+          ;Then: Add follow of lhs to follow of (car rhs)
+          (follow-production eps nonterms terms firsts (add-to follows (car rhs) (cdr (get-line lhs follows))) lhs (cdr rhs))
+          ;Else: If we haven't exhausted rhs yet
+          (if (> (length rhs) 0)
+              ;Then: Call function again with the next symbol in rhs
+              (follow-production eps nonterms terms firsts follows lhs (cdr rhs))
+              ;Else: No more function calling, just return follows
+              follows
+          )
+      )
+    )
+  )
+)
+
+(follow calc-gram temp-eps (nonterms calc-gram) (get-terminals calc-gram) temp-firsts)
