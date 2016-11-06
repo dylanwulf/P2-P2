@@ -132,8 +132,8 @@
   (map remove-repeats (empties gram)))
 
 (define (remove-repeats line)
-  (cond ((contains line #t) (cons (car line) #t))
-        (else (cons (car line) #f))))
+  (cond ((contains line #t) (cons (car line) (list #t)))
+        (else (cons (car line) (list #f)))))
 
 (define (empties gram)
   (map eps-helper gram))
@@ -287,4 +287,4 @@
   )
 )
 
-(follow calc-gram temp-eps (nonterms calc-gram) (get-terminals calc-gram) temp-firsts)
+;(follow calc-gram temp-eps (nonterms calc-gram) (get-terminals calc-gram) temp-firsts)
