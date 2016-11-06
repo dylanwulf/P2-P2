@@ -100,25 +100,22 @@
   )
 )
 
-; loops through every line of grammar
+; loops through every production of every line in the grammar. If the production starts with a terminal,
+; that terminal is added to the first set of the nonterminal. If the production starts with a new
+; nonterminal, then the first set of the new nonterminal is added to the original nonterminal. If the
+; new nonterminal does to the empty set, then the new nonterminals first set is added to the original
+; nonterminal's first set, but the next token is also evaluated.
 (define (firsts gram)
-  (map firsts-helper gram))
-
-; loops through every production on the right hand side of the line, pairing the list of firsts to the
-; nonterminal that starts the line
-(define (firsts-helper line)
-  (flatten(cons (car line)
-        (map firsts-helper2 (cdr line)))))
-
-; If production starts with a terminal or the empty set, returns that item.
-; If production starts with a nonterminal, it runs the function again on that nonterminal's productions
-(define (firsts-helper2 production)
-  (cond
-    ((= (length production) 0) '())
-    ((contains (get-terminals calc-gram) (car production))                                                  
-      (car production))
-    (else
-      (map firsts-helper2 (cdr (get-line (car production) calc-gram))))))
+  (define (firsts-helper production)
+    (write production)
+    (cond
+      ((= (length production) 0) '())
+      ((contains (get-terminals gram) (car production)) (display " terminal") (newline) (car production))
+      ((eq? (car (cdr (get-line (car production) (eps gram)))) #t) (display " empty nonterminal") (newline) (flatten (cons (firsts-helper (list (car (cdr production)))) (map firsts-helper (cdr (get-line (car production) gram)))))) 
+      (else
+       (map firsts-helper (cdr (get-line (car production) gram))))))
+  (map (lambda(line)(flatten(cons (car line)
+                                    (map firsts-helper (cdr line))))) gram))
 
 ; finds the line that starts with the specified nonterminal
 (define (get-line nonterm gram)
@@ -288,3 +285,5 @@
 )
 
 ;(follow calc-gram temp-eps (nonterms calc-gram) (get-terminals calc-gram) temp-firsts)
+
+(firsts calc-gram)
