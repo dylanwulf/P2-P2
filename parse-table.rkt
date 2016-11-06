@@ -143,3 +143,18 @@
     )
   )
 )
+
+(define string-eps
+  (lambda (symbols eps terminals)
+    (if (eq? (length symbols) 0)
+        #t
+        (if (contains terminals (car symbols))
+            #f
+            (if (cadr (get-line (car symbols) eps))
+                (string-eps (cdr symbols) eps terminals)
+                #f
+            )
+        )
+    )
+  )
+)
