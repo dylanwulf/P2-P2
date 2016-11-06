@@ -158,3 +158,15 @@
     )
   )
 )
+
+(define add-to
+  (lambda (ll first addition)
+    (if (eq? (length ll) 0)
+        '()
+        (if (eq? (caar ll) first)
+            (append (list (append (car ll) addition)) (add-to (cdr ll) first addition))
+            (append (list (car ll)) (add-to (cdr ll) first addition))
+        )
+    )
+  )
+)
