@@ -1,9 +1,12 @@
 # P2-P2
 Programming Languages Project 2 Part 2
+November 6, 2016
 
 David Shull and Dylan Wulf
 
-This project is written in Scheme programming language. In order to run the
+This project is written in the R5RS version of the Scheme programming language, 
+using the DrRacket IDE. If the code is to be run in the DrRacket IDE, the R5RS
+language must first be selected or else it will not run. In order to run the
 code, a grammar must first be defined (there is a basic calculator grammar,
 called calc-gram, built into the code already, but the code will work with any
 grammar formatted in the same way). The input grammar must consist of a list of
@@ -13,7 +16,7 @@ sides of the productions for which that non-terminal is the left-hand side. The
 sublist for the start symbol must come first. Every grammar symbol must be
 represented as a quoted string.
 
-By typing (parse-table <insert grammar name here>) at the command line, the
+By typing (parse-table <insert grammar here>) at the command line, the
 code will execute. The output is the parse-table of predict sets associated
 with this grammar. The parse table, as returned by function parse-table, has
 the same format as the input, except that every right-hand side is replaced by
