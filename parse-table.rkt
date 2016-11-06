@@ -11,39 +11,30 @@
 ("F" ("id") ("num") ("(" "E" ")"))
 ))
 
-(define temp-firsts ;; delete later!
-  '(("P" "id" "read" "write" "$$")
- ("SL" "id" "read" "write")
- ("S" "id" "read" "write")
- ("E" "id" "num" "(")
- ("T" "id" "num" "(")
- ("TT" "+" "-")
- ("FT" "*" "/")
- ("ao" "+" "-")
- ("mo" "*" "/")
- ("F" "id" "num" "("))
+(define (parse-table gram)
+  (parse-table-helper gram (firsts gram) (follow gram (eps gram) (nonterms gram) (get-terminals gram) (firsts gram)) (eps gram) (get-terminals gram))
 )
 
-(define temp-eps ;; delete later!
-  '(("P" #f)
- ("SL" #t)
- ("S" #f)
- ("E" #f)
- ("T" #f)
- ("TT" #t)
- ("FT" #t)
- ("ao" #f)
- ("mo" #f)
- ("F" #f))
+(define (parse-table-helper gram firsts follows eps terms)
+  (if (eq? (length gram) 0)
+      '()
+      (append (list (cons (caar gram) (parse-table-line (caar gram) (cdar gram) firsts follows eps terms))) (parse-table-helper (cdr gram) firsts follows eps terms))
+  )
 )
 
-(define (parse-table calc-gram)
-  (map parse-helper calc-gram))
+(define (parse-table-line symbol prods firsts follows eps terms)
+  (if (eq? (length prods) 0)
+      '()
+      (append (list (parse-table-prod symbol (car prods) firsts follows eps terms)) (parse-table-line symbol (cdr prods) firsts follows eps terms))
+  )
+)
 
-(define (parse-helper x)
-  (append (list (car x)) (map all (cdr x))))
-
-(define (all x) (cons '(1) (list x)))
+(define (parse-table-prod symbol prod firsts follows eps terms)
+  (if (string-eps prod eps terms)
+      (cons (addifne (string-first prod firsts eps terms) (cdr (get-line symbol follows))) (list prod))
+      (cons (string-first prod firsts eps terms) (list prod))
+  )
+)
 
 (define (nonterms gram) (map car gram))
 
@@ -284,6 +275,4 @@
   )
 )
 
-;(follow calc-gram temp-eps (nonterms calc-gram) (get-terminals calc-gram) temp-firsts)
-
-(firsts calc-gram)
+(parse-table calc-gram)
