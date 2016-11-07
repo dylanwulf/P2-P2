@@ -102,50 +102,54 @@
   )
 )
 
-; loops through every production of every line in the grammar. If the production starts with a terminal,
+; Loops through every production of every line in the grammar. If the production starts with a terminal,
 ; that terminal is added to the first set of the nonterminal. If the production starts with a new
 ; nonterminal, then the first set of the new nonterminal is added to the original nonterminal. If the
 ; new nonterminal does to the empty set, then the new nonterminals first set is added to the original
 ; nonterminal's first set, but the next token is also evaluated.
 (define (firsts gram)
   (define (firsts-helper production)
-    (write production)
     (cond
       ((= (length production) 0) '())
-      ((contains (get-terminals gram) (car production)) (display " terminal") (newline) (car production))
-      ((eq? (car (cdr (get-line (car production) (eps gram)))) #t) (display " empty nonterminal") (newline) (flatten (cons (firsts-helper (list (car (cdr production)))) (map firsts-helper (cdr (get-line (car production) gram)))))) 
+      ((contains (get-terminals gram) (car production)) (car production))
+      ((eq? (car (cdr (get-line (car production) (eps gram)))) #t) (flatten (cons (firsts-helper (list (car (cdr production)))) (map firsts-helper (cdr (get-line (car production) gram)))))) 
       (else
        (map firsts-helper (cdr (get-line (car production) gram))))))
   (map (lambda(line)(flatten(cons (car line)
                                     (map firsts-helper (cdr line))))) gram))
 
-; finds the line that starts with the specified nonterminal
+; Finds the line that starts with the specified nonterminal
 (define (get-line nonterm gram)
   (if (equal? (car (car gram)) nonterm)
       (car gram)
       (get-line nonterm (cdr gram))))
 
-; returns a list of pairs: first element in pair is nonterminal, second element is boolean value specifying
+; Returns a list of pairs: first element in pair is nonterminal, second element is boolean value specifying
 ; whether that nonterminal has the empty set in its first set.
 (define (eps gram)
   (map remove-repeats (empties gram)))
 
+; Removes repeats from the list of boolean values for each nonterminal
 (define (remove-repeats line)
   (cond ((contains line #t) (cons (car line) (list #t)))
         (else (cons (car line) (list #f)))))
 
+; Loops through each line of the grammar
 (define (empties gram)
   (map eps-helper gram))
 
+; Creates a pair with first element a nonterminal, and the second element a list of boolean values
+; indicating whether or not a set is empty
 (define (eps-helper line)
   (cons (car line)
         (map has-empty? (cdr line))))
 
+; Determines whether a production is the empty set
 (define (has-empty? production)
   (cond ((= (length production) 0) #t)
         ((> (length production) 0) #f)))
 
-; removes excess parentheses
+; Removes excess parentheses
 (define flatten
   (lambda (L)
     ; Return left-to-right fringe of tree as list.
